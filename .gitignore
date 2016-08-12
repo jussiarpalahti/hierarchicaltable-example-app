@@ -1,0 +1,10 @@
+node_modules/
+*.map
+*.js
+*.d.ts
+*.log.*
+*.log
+*.tgz
+!typings-custom/*.d.ts
+.idea
+.DS_store

@@ -1,0 +1,46 @@
+{
+  "name": "hierarchicaltable",
+  "version": "0.9.1",
+  "description": "Hierarchical statistical table for React",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typings": "typings",
+    "tsc": "tsc",
+    "cbuild": "cbuild",
+    "bundle": "cbuild -d -v -m systemjs-hot-reloader -o dist/bundle.js -C config-npm.js",
+    "bundle-reloader": "cbuild -d -v -s node_modules/systemjs-hot-reloader/hot-reloader.js -o reloader-bundle.js -C config-reloader.js",
+    "prepublish": "typings install && tsc && tsc -p server && npm run bundle-reloader && npm run bundle",
+    "start": "NODE_ENV=development node server/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jussiarpalahti/hierarchicaltable.git"
+  },
+  "keywords": [
+    "hierarchical table",
+    "statistical table",
+    "pc-axis",
+    "json-stat",
+    "react"
+  ],
+  "author": "Jussi Arpalahti",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/jussiarpalahti/hierarchicaltable/issues"
+  },
+  "homepage": "https://github.com/jussiarpalahti/hierarchicaltable#readme",
+  "dependencies": {
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0",
+    "systemjs": "^0.19.36",
+    "systemjs-hot-reloader": "^0.5.8"
+  },
+  "devDependencies": {
+    "cbuild": "^0.1.1",
+    "chokidar-socket-emitter": "^0.5.4",
+    "http-server": "^0.9.0",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.2"
+  }
+}

@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"experimentalDecorators": true,
+		"jsx": "react",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"outDir": "dist",
+		"removeComments": false,
+		"target": "es5",
+		"sourceMap": true
+	},
+	"files": [
+		"typings/browser.d.ts",
+
+		"src/index.ts",
+		"src/table.tsx"
+	]
+}
