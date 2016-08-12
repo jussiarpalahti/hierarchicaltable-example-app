@@ -1,5 +1,5 @@
 {
-  "name": "hierarchicaltable",
+  "name": "hierarchical-table-app",
   "version": "0.9.1",
   "description": "Hierarchical statistical table for React",
   "main": "dist/index.js",
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/jussiarpalahti/hierarchicaltable#readme",
   "dependencies": {
+    "hierarchical-table": "0.0.2",
     "react": "^15.3.0",
     "react-dom": "^15.3.0",
     "systemjs": "^0.19.36",

@@ -1,10 +1,11 @@
 
-import {Table} from './table';
+import {Table} from 'hierarchical-table';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-console.log("arg")
+console.log("argh!")
 
 ReactDOM.render(
-  React.createElement(Table, null),
+  <div><h1>Testing</h1><Table /></div>,
   document.getElementById('app'));
