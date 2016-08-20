@@ -9,11 +9,13 @@
 		"outDir": "dist",
 		"removeComments": false,
 		"target": "es5",
-		"sourceMap": true
+		"sourceMap": true,
+		"allowJs": true
 	},
 	"files": [
 		"typings/index.d.ts",
 
-		"src/index.tsx"
+		"src/index.tsx",
+		"src/ManualTable"
 	]
 }
