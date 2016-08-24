@@ -32,10 +32,13 @@
   "homepage": "https://github.com/jussiarpalahti/hierarchicaltable#readme",
   "dependencies": {
     "hierarchical-table": "0.0.2",
+    "mobx": "^2.4.4",
+    "mobx-react": "^3.5.5",
     "react": "^15.3.0",
     "react-dom": "^15.3.0",
     "systemjs": "^0.19.36",
-    "systemjs-hot-reloader": "^0.5.8"
+    "systemjs-hot-reloader": "^0.5.8",
+    "mobx-react-devtools": "^4.2.4"
   },
   "devDependencies": {
     "cbuild": "^0.1.1",
