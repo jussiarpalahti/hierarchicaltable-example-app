@@ -1,4 +1,8 @@
 
+html {
+    padding: 1em;
+}
+
 /*
 Blocked ugly basic styles
 tr, th, td, table {
