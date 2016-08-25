@@ -9,7 +9,7 @@ var Lockr = require('lockr');
 
 import {extable} from './extable'
 
-import { observable, computed, action, reaction, toJS, runInAction, spy} from 'mobx';
+import {observable, computed, action, reaction, toJS, runInAction, spy, transaction} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
@@ -191,7 +191,8 @@ const TableList = ({source, activate}) => {
                     {store.active_table ? <TableSelect table={store.active_table} /> : null}
                 </div>
                 <div id="toolbar">
-                    <button onClick={() => export_state()}>Check state</button>
+                    <button onClick={() => export_state()}>Export state</button>
+                    <button onClick={() => import_state()}>Import state</button>
                 </div>
                 <DevTools />
             </div>
@@ -219,6 +220,29 @@ function export_state() {
     console.log("state is", state_store);
 }
 
+
+function import_state() {
+    transaction(() => {
+        store.datasources = state_store.datasources.map(
+            (source) => {
+                return new DataSource(
+                    source.name,
+                    source.url,
+                    source.data.map(
+                        (datatable) => new DataTable(datatable.table, datatable.view))
+                );
+            });
+        store.active_source = new DataSource(
+            state_store.active_source.name,
+            state_store.active_source.url,
+            state_store.active_source.data.map(
+                (datatable) => new DataTable(datatable.table, datatable.view))
+        );
+        store.active_table = state_store.active_table;
+    });
+}
+
+
 function save_state(state, name='state') {
     Lockr.set(name, state);
 }
@@ -231,29 +255,28 @@ function clear_state(name='state') {
     Lockr.rm(name);
 }
 
-
-reaction(
-    () => store.active_source,
-    (active_source) => {
-        state_store.active_source = toJS(active_source);
-        save_state(state_store);
-    });
-
-reaction(
-    () => store.active_table,
-    (active_table) => {
-        state_store.active_table = toJS(active_table);
-        save_state(state_store);
-    });
-
-reaction(
-    () => store.datasources,
-    (datasources) => {
-        state_store.datasources = toJS(datasources);
-        state_store.datasources.data = datasources.data.map(item => toJS(item));
-        save_state(state_store);
-    });
-
+//
+// reaction(
+//     () => store.active_source,
+//     (active_source) => {
+//         state_store.active_source = toJS(active_source);
+//         save_state(state_store);
+//     });
+//
+// reaction(
+//     () => store.active_table,
+//     (active_table) => {
+//         state_store.active_table = toJS(active_table);
+//         save_state(state_store);
+//     });
+//
+// reaction(
+//     () => store.datasources,
+//     (datasources) => {
+//         state_store.datasources = toJS(datasources);
+//         state_store.datasources.data = datasources.data.map(item => toJS(item));
+//         save_state(state_store);
+//     });
 
 //
 // reaction(
