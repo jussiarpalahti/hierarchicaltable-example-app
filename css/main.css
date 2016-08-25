@@ -154,6 +154,12 @@ Pure menus end
     border-top: 1px solid black;
 }
 
-#toolbar span {
-    padding: 0 1em;
+#toolbar h1 {
+    display: inline;
+    font-size: 120%;
+    margin: 2em;
+}
+
+#toolbar button {
+    margin: 1em;
 }

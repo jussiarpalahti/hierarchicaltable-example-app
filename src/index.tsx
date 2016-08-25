@@ -191,8 +191,12 @@ const TableList = ({source, activate}) => {
                     {store.active_table ? <TableSelect table={store.active_table} /> : null}
                 </div>
                 <div id="toolbar">
+                    <h1>State Toolbar</h1>
                     <button onClick={() => export_state()}>Export state</button>
-                    <button onClick={() => import_state()}>Import state</button>
+                    <button onClick={() => import_state(state_store)}>Import state</button>
+                    <button onClick={() => save_state(state_store)}>Save state</button>
+                    <button onClick={() => import_state(get_state())}>Load state</button>
+                    <button onClick={() => clear_state()}>Clear saved state</button>
                 </div>
                 <DevTools />
             </div>
@@ -221,9 +225,9 @@ function export_state() {
 }
 
 
-function import_state() {
+function import_state(saved_state) {
     transaction(() => {
-        store.datasources = state_store.datasources.map(
+        store.datasources = saved_state.datasources.map(
             (source) => {
                 return new DataSource(
                     source.name,
@@ -233,12 +237,12 @@ function import_state() {
                 );
             });
         store.active_source = new DataSource(
-            state_store.active_source.name,
-            state_store.active_source.url,
-            state_store.active_source.data.map(
+            saved_state.active_source.name,
+            saved_state.active_source.url,
+            saved_state.active_source.data.map(
                 (datatable) => new DataTable(datatable.table, datatable.view))
         );
-        store.active_table = state_store.active_table;
+        store.active_table = saved_state.active_table;
     });
 }
 
