@@ -14,11 +14,13 @@ class StateStore {
 
     name = 'statestore';
     states:string[] = [];
-    @observable active_state:number;
+    @observable active_state:number = 0;
 
     @action add_state(state:string) {
-        this.states.push(state);
-        this.active_state = this.states.length - 1;
+        if (!(this.active_state < this.states.length - 1)) {
+            this.states.push(state);
+            this.active_state = this.states.length - 1;
+        }
     }
 
     @computed get state() {
@@ -73,10 +75,10 @@ class Store {
                     Current table and view: "{store.table}" and "{store.view}"
                 </div>
                 <div>Set view:
-                    <input onChange={e => store.set_view(e.target.value)} defaultValue={store.view} />
+                    <input onChange={e => store.set_view(e.target.value)} value={store.view} />
                 </div>
                 <div>
-                    Active state: "{state_store.state}"
+                    Active state: "{state_store.state}" / {state_store.active_state} / {state_store.states.length}
                     <div>
                         {state_store.is_prev_state() ? "jee" : "noo"}
                         {state_store.is_next_state() ? "jee" : "noo"}
@@ -101,6 +103,13 @@ reaction(
     (view) => {
         state_store.add_state(toJS(view));
 });
+
+reaction(
+    () => state_store.state,
+    (view) => {
+        store.set_view(view);
+    }
+);
 
 ReactDOM.render(
   <div>
