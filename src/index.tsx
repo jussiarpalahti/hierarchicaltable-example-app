@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom';
 
 import {extable} from './extable'
 
-import { observable, computed, action, reaction, toJS} from 'mobx';
+import { observable, computed, action, reaction, toJS, runInAction} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
@@ -15,21 +15,17 @@ import DevTools from 'mobx-react-devtools';
 
 // DataTable is a combination of original dataset and its selected headers
 class DataTable {
-    table:Dataset;
-    view:{string: [string]};
+    constructor(
+        public table:Dataset,
+        public view?:{string: [string]}) {}
 }
 
 // Collection of DataTables
 class DataSource {
-    name:string;
-    url:string;
-    tables:[DataTable]
-}
-
-// Collection of DataSources
-interface DataSources {
-    name:string,
-    sources:[DataSource]
+    constructor(
+        public name:string,
+        public url:string,
+        public data:DataTable[]) {}
 }
 
 
@@ -73,29 +69,44 @@ class StateStore {
 class Store {
 
     name = "store";
-    @observable table:string;
-    @observable view:string;
+    @observable datasources:any;
+    @observable active_source:DataSource;
+    @observable active_table:DataTable;
+    @observable is_loading:boolean;
 
-    constructor(table:string) {
-        this.table = table;
-        this.view = 'no view';
-    }
-
-    @action set_view(view:string) {
-        this.view = view;
+    constructor(data) {
+        this.datasources = data;
     }
 
     hydrate(dry_state:any) {
         // TODO: Make an interface that both Store and dry store could use for data
-        this.table = dry_state.table;
-        this.view = dry_state.view;
+        this.datasources = dry_state.datasources;
     }
 
     dehydrate():any {
         // TODO: Make an interface that both Store and dry store could use for data
         return {
-            table: toJS(this.table),
-            view: toJS(this.view)}
+            datasources: toJS(this.datasources)
+        };
+    }
+
+    @action activate_source(source:DataSource) {
+        this.active_source = source;
+        this._load(this.active_source.url);
+    }
+
+    @action async _load(url) {
+        this.is_loading = true;
+        try {
+            let response = await fetch(url);
+            let data = await response.json();
+            runInAction("update state after fetching data", () => {
+                this.active_source.data = data.pxdocs.map(doc => new DataTable(doc));
+                this.is_loading = false;
+            });
+        } catch (e) {
+            console.log("error", e.message);
+        }
     }
 
 }
@@ -103,8 +114,20 @@ class Store {
 // <Table data={extable} preview={true} />
 
 // var App = ({store:Store, state_store:StateStore}) =>
-
+// <input onChange={e => store.set_view(e.target.value)} value={store.view} />
 // APP
+
+const ShowTables = ({source}) => {
+    let tables = source.data;
+    if (tables.length > 0) {
+        let resp = tables.map(({table}) => {
+            return (<li key={table.name}>{table.name}</li>)
+            });
+        return <ul>{resp}</ul>;
+    } else {
+        return null;
+    }
+};
 
 @observer class App extends React.Component<{store:Store, state_store:StateStore}, {}> {
     render() {
@@ -112,10 +135,19 @@ class Store {
             <div>
                 <h1>Example app for hierarchical table library</h1>
                 <div>
-                    Current table and view: "{store.table}" and "{store.view}"
+                    <ul>
+                    {store.datasources.map(source => {
+                            return (
+                                <li key={source.name}>
+                                {source.name} <button
+                                    onClick={() => store.activate_source(source)}>
+                                    Select source</button>
+                            </li>);
+                        })}
+                    </ul>
                 </div>
-                <div>Set view:
-                    <input onChange={e => store.set_view(e.target.value)} value={store.view} />
+                <div>
+                    {!store.is_loading && store.active_source ? <ShowTables source={store.active_source} /> : store.is_loading ? "..loading" : "no source"}
                 </div>
                 <div>
                     Active state: {state_store.active_state} / {state_store.states.length}
@@ -137,7 +169,9 @@ class Store {
 
 // INITIALIZATION
 
-const store = new Store('a table');
+const sources = [new DataSource("My data", "http://localhost:8000/", [])];
+
+const store = new Store(sources);
 
 const state_store = new StateStore();
 

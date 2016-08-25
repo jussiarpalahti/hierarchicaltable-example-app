@@ -8,7 +8,7 @@
 		"noImplicitAny": false,
 		"outDir": "dist",
 		"removeComments": false,
-		"target": "es5",
+		"target": "es6",
 		"sourceMap": true,
 		"allowJs": true
 	},
