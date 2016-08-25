@@ -122,8 +122,6 @@ class Store {
 
 }
 
-// <Table data={extable} preview={true} />
-
 // var App = ({store:Store, state_store:StateStore}) =>
 // <input onChange={e => store.set_view(e.target.value)} value={store.view} />
 // APP
@@ -172,7 +170,7 @@ const TableList = ({source, activate}) => {
         return (
             <div>
                 <h1>Example app for hierarchical table library</h1>
-                <div>
+                <div id="datasources">
                     <ul>
                     {store.datasources.map(source => {
                             return (
@@ -184,11 +182,14 @@ const TableList = ({source, activate}) => {
                         })}
                     </ul>
                 </div>
-                <div>
+                <div id="tablelist">
                     {!store.is_loading && store.active_source ? <TableList source={store.active_source} activate={(table) => store.activate_table(table)} /> : store.is_loading ? "..loading" : "no source"}
                 </div>
-                <div>
+                <div id="tableselect">
                     {store.active_table ? <TableSelect table={store.active_table} /> : null}
+                </div>
+                <div id="table">
+                    {store.active_table && !store.active_table.view ? <Table data={store.active_table} preview={true} /> : null}
                 </div>
                 <div id="toolbar">
                     <h1>State Toolbar</h1>

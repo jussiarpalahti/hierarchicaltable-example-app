@@ -1,6 +1,10 @@
 
 html {
-    padding: 1em;
+    padding: 2em 0.5em 4em 0.5em;
+}
+
+#table, #tableselect, #tablelist, #datasources {
+    margin: 1em;
 }
 
 /*
@@ -145,13 +149,15 @@ Pure menus end
 }
 
 #toolbar {
-    position: absolute;
+    position: fixed;
     text-align: center;
     vertical-align: bottom;
     left: 0px;
     right: 0px;
     bottom: 0px;
     border-top: 1px solid black;
+    z-index: 10;
+    background-color: white;
 }
 
 #toolbar h1 {
