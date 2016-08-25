@@ -191,7 +191,7 @@ const TableList = ({source, activate}) => {
                     {store.active_table ? <TableSelect table={store.active_table} /> : null}
                 </div>
                 <div id="toolbar">
-                    <button onClick={() => console.log("state is", state_store)}>Check state</button>
+                    <button onClick={() => export_state()}>Check state</button>
                 </div>
                 <DevTools />
             </div>
@@ -212,6 +212,12 @@ const state_store = {
     active_table: null
 };
 
+function export_state() {
+    state_store.datasources = toJS(store.datasources);
+    state_store.active_source = toJS(store.active_source);
+    state_store.active_table = toJS(store.active_table);
+    console.log("state is", state_store);
+}
 
 function save_state(state, name='state') {
     Lockr.set(name, state);
@@ -244,6 +250,7 @@ reaction(
     () => store.datasources,
     (datasources) => {
         state_store.datasources = toJS(datasources);
+        state_store.datasources.data = datasources.data.map(item => toJS(item));
         save_state(state_store);
     });
 
