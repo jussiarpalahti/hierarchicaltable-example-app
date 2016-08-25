@@ -92,16 +92,22 @@ class Store {
 
     @action activate_source(source:DataSource) {
         this.active_source = source;
-        this._load(this.active_source.url);
+        this._load(
+            this.active_source.url,
+            (data) => this.active_source.data = data.pxdocs.map(doc => new DataTable(doc)));
     }
 
-    @action async _load(url) {
+    @action activate_table(table:DataTable) {
+        this.active_table = table;
+    }
+
+    @action async _load(url, update) {
         this.is_loading = true;
         try {
             let response = await fetch(url);
             let data = await response.json();
             runInAction("update state after fetching data", () => {
-                this.active_source.data = data.pxdocs.map(doc => new DataTable(doc));
+                update(data);
                 this.is_loading = false;
             });
         } catch (e) {
@@ -117,11 +123,38 @@ class Store {
 // <input onChange={e => store.set_view(e.target.value)} value={store.view} />
 // APP
 
-const ShowTables = ({source}) => {
+const Menu = ({heading, items}) => {
+    let menu_items = items.map(
+        (item, index) => {
+            return <li
+                key={heading + "_" + index}
+                className="pure-menu-item">
+                <a href="#" className="pure-menu-link">{item}</a>
+            </li>
+        });
+
+    return (<div className="header_menu">
+        <div className="pure-menu pure-menu-scrollable custom-restricted">
+            <a href="#" className="pure-menu-link pure-menu-heading">{heading}</a>
+
+            <ul className="pure-menu-list">
+                {menu_items}
+            </ul>
+        </div></div>);
+};
+
+const TableSelect = ({table}) => {
+    return (<div>
+        <div>{table.heading.map((heading, index) => <span key={index}><Menu heading={heading} items={table.levels[heading]} /></span>)}</div>
+        <div>{table.stub.map((stub, index) => <span key={index}><Menu heading={stub} items={table.levels[stub]} /></span>)}</div>
+    </div>)
+};
+
+const TableList = ({source, activate}) => {
     let tables = source.data;
     if (tables.length > 0) {
         let resp = tables.map(({table}) => {
-            return (<li key={table.name}>{table.name}</li>)
+            return (<li key={table.name} onClick={() => activate(table)}>{table.name}</li>)
             });
         return <ul>{resp}</ul>;
     } else {
@@ -147,18 +180,19 @@ const ShowTables = ({source}) => {
                     </ul>
                 </div>
                 <div>
-                    {!store.is_loading && store.active_source ? <ShowTables source={store.active_source} /> : store.is_loading ? "..loading" : "no source"}
+                    {!store.is_loading && store.active_source ? <TableList source={store.active_source} activate={(table) => store.activate_table(table)} /> : store.is_loading ? "..loading" : "no source"}
                 </div>
                 <div>
-                    Active state: {state_store.active_state} / {state_store.states.length}
-                    <div>
-                        {state_store.is_prev_state() ? "jee" : "noo"}
-                        {state_store.is_next_state() ? "jee" : "noo"}
-                    </div>
+                    {store.active_table ? <TableSelect table={store.active_table} /> : null}
                 </div>
-                <div>
-                    <button disabled={!state_store.is_prev_state() ? "disabled" : ""} onClick={() => state_store.previous()}>Prev</button>
-                    <button disabled={!state_store.is_next_state() ? "disabled" : ""} onClick={() => state_store.next()}>Next</button>
+                <div id="toolbar">
+                    <span>
+                        Active state: {state_store.active_state} / {state_store.states.length}
+                    </span>
+                    <span>
+                        <button disabled={!state_store.is_prev_state() ? "disabled" : ""} onClick={() => state_store.previous()}>Prev</button>
+                        <button disabled={!state_store.is_next_state() ? "disabled" : ""} onClick={() => state_store.next()}>Next</button>
+                    </span>
                 </div>
                 <DevTools />
             </div>

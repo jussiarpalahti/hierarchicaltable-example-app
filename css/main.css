@@ -143,3 +143,17 @@ Pure menus end
     width: 100%;
     height: 25em;
 }
+
+#toolbar {
+    position: absolute;
+    text-align: center;
+    vertical-align: bottom;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    border-top: 1px solid black;
+}
+
+#toolbar span {
+    padding: 0 1em;
+}
