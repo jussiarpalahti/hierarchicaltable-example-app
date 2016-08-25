@@ -6,7 +6,7 @@ For actual component see: https://github.com/jussiarpalahti/hierarchicaltable.gi
 ## TODO
 
  - [X] Render an example table
- - [ ] Preview table from statserver JSON (my own simple Django app that provides lightweight REST API to PC Axis files)
+ - [X] Preview table from statserver JSON (my own simple Django app that provides lightweight REST API to PC Axis files)
  - [ ] Preview table from JSON Stat (standard for PX Web services)
  - [ ] Table header selector (which headers to display from headings)
  - [ ] Pivot selector (change the order of headings)
