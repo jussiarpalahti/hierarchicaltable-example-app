@@ -44,6 +44,7 @@
     "cbuild": "^0.1.1",
     "chokidar-socket-emitter": "^0.5.4",
     "http-server": "^0.9.0",
+    "lockr": "^0.8.4",
     "typescript": "^1.8.10",
     "typings": "^1.3.2"
   }

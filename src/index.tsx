@@ -4,9 +4,12 @@ import {Table, Dataset, ITable} from 'hierarchical-table';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
+declare var require: any;
+var Lockr = require('lockr');
+
 import {extable} from './extable'
 
-import { observable, computed, action, reaction, toJS, runInAction} from 'mobx';
+import { observable, computed, action, reaction, toJS, runInAction, spy} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
@@ -34,10 +37,10 @@ class DataSource {
 class StateStore {
 
     name = 'statestore';
-    states:string[] = [];
+    states:{}[] = [];
     @observable active_state:number = 0;
 
-    @action add_state(state:string) {
+    @action add_state(state:{}) {
         if (!(this.active_state < this.states.length - 1)) {
             this.states.push(state);
             this.active_state = this.states.length - 1;
@@ -86,7 +89,9 @@ class Store {
     dehydrate():any {
         // TODO: Make an interface that both Store and dry store could use for data
         return {
-            datasources: toJS(this.datasources)
+            datasources: toJS(this.datasources),
+            active_source: toJS(this.active_source),
+            active_table: toJS(this.active_table)
         };
     }
 
@@ -186,13 +191,7 @@ const TableList = ({source, activate}) => {
                     {store.active_table ? <TableSelect table={store.active_table} /> : null}
                 </div>
                 <div id="toolbar">
-                    <span>
-                        Active state: {state_store.active_state} / {state_store.states.length}
-                    </span>
-                    <span>
-                        <button disabled={!state_store.is_prev_state() ? "disabled" : ""} onClick={() => state_store.previous()}>Prev</button>
-                        <button disabled={!state_store.is_next_state() ? "disabled" : ""} onClick={() => state_store.next()}>Next</button>
-                    </span>
+                    <button onClick={() => console.log("state is", state_store)}>Check state</button>
                 </div>
                 <DevTools />
             </div>
@@ -207,20 +206,55 @@ const sources = [new DataSource("My data", "http://localhost:8000/", [])];
 
 const store = new Store(sources);
 
-const state_store = new StateStore();
+const state_store = {
+    datasources: toJS(store.datasources),
+    active_source: null,
+    active_table: null
+};
+
+
+function save_state(state, name='state') {
+    Lockr.set(name, state);
+}
+
+function get_state(name='state') {
+    return Lockr.get(name);
+}
+
+function clear_state(name='state') {
+    Lockr.rm(name);
+}
+
 
 reaction(
-    () => store.dehydrate(),
-    (dry_state) => {
-        state_store.add_state(dry_state);
-});
+    () => store.active_source,
+    (active_source) => {
+        state_store.active_source = toJS(active_source);
+        save_state(state_store);
+    });
 
 reaction(
-    () => state_store.state,
-    (dry_state) => {
-        store.hydrate(dry_state);
-    }
-);
+    () => store.active_table,
+    (active_table) => {
+        state_store.active_table = toJS(active_table);
+        save_state(state_store);
+    });
+
+reaction(
+    () => store.datasources,
+    (datasources) => {
+        state_store.datasources = toJS(datasources);
+        save_state(state_store);
+    });
+
+
+//
+// reaction(
+//     () => state_store.state,
+//     (dry_state) => {
+//         store.hydrate(dry_state);
+//     }
+// );
 
 ReactDOM.render(
   <div>
