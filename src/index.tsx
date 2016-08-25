@@ -10,15 +10,30 @@ import { observable, computed, action, reaction, toJS} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
+
+// INTERFACES
+
+// DataTable is a combination of original dataset and its selected headers
 class DataTable {
-    table:ITable
+    table:Dataset;
+    view:{string: [string]};
 }
 
+// Collection of DataTables
 class DataSource {
     name:string;
     url:string;
     tables:[DataTable]
 }
+
+// Collection of DataSources
+interface DataSources {
+    name:string,
+    sources:[DataSource]
+}
+
+
+// STORES
 
 class StateStore {
 
@@ -89,6 +104,8 @@ class Store {
 
 // var App = ({store:Store, state_store:StateStore}) =>
 
+// APP
+
 @observer class App extends React.Component<{store:Store, state_store:StateStore}, {}> {
     render() {
         return (
@@ -116,6 +133,9 @@ class Store {
         )
     };
 }
+
+
+// INITIALIZATION
 
 const store = new Store('a table');
 
