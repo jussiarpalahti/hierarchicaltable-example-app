@@ -37,7 +37,9 @@ class DataTable {
     }
 
     @action add_selection(heading:string, index:number) {
-        this.view[heading].push(index);
+        let prev = this.view[heading].indexOf(index);
+        if (prev == -1) this.view[heading].push(index);
+        else this.view[heading].remove(index);
     }
 
     @computed get selected() {
