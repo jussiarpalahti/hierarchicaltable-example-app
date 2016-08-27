@@ -9,7 +9,7 @@ var Lockr = require('lockr');
 
 import {extable} from './extable'
 
-import {observable, computed, action, reaction, toJS, runInAction, spy, transaction} from 'mobx';
+import {observable, computed, action, toJS, runInAction, transaction} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
@@ -19,8 +19,24 @@ import DevTools from 'mobx-react-devtools';
 // DataTable is a combination of original dataset and its selected headers
 class DataTable {
     constructor(
-        public table:Dataset,
-        public view?:{string: [string]}) {}
+        public table: Dataset,
+        public view?: {[key:string]: number[]},
+        public view_matrix?: [string[]]) {
+            this.table = table;
+            if (view) {
+                this.view = view;
+            } else {
+                this.view = {};
+                for (let key in this.table.levels) {
+                    this.view[key] = [];
+                }
+            }
+            this.view_matrix = view_matrix;
+    }
+
+    add_selection(heading:string, index:number) {
+        this.view[heading].push(index);
+    }
 }
 
 // Collection of DataTables
@@ -120,6 +136,10 @@ class Store {
         }
     }
 
+    @action update_table(heading:string, index:number) {
+        this.active_table.add_selection(heading, index);
+    }
+
 }
 
 // var App = ({store:Store, state_store:StateStore}) =>
@@ -129,10 +149,12 @@ class Store {
 const Menu = ({heading, items}) => {
     let menu_items = items.map(
         (item, index) => {
+            let selected = store.active_table.view[heading].indexOf(index) == -1 ? "\u2717" : "\u2713";
             return <li
+                onClick={() => store.update_table(heading, index)}
                 key={heading + "_" + index}
                 className="pure-menu-item">
-                <a href="#" className="pure-menu-link">{item}</a>
+                    <a href="#" className="pure-menu-link">{selected} {item}</a>
             </li>
         });
 
@@ -146,18 +168,18 @@ const Menu = ({heading, items}) => {
         </div></div>);
 };
 
-const TableSelect = ({table}) => {
+const TableSelect = ({data}) => {
     return (<div>
-        <div>{table.heading.map((heading, index) => <span key={index}><Menu heading={heading} items={table.levels[heading]} /></span>)}</div>
-        <div>{table.stub.map((stub, index) => <span key={index}><Menu heading={stub} items={table.levels[stub]} /></span>)}</div>
+        <div>{data.table.heading.map((heading, index) => <span key={index}><Menu heading={heading} items={data.table.levels[heading]} /></span>)}</div>
+        <div>{data.table.stub.map((stub, index) => <span key={index}><Menu heading={stub} items={data.table.levels[stub]} /></span>)}</div>
     </div>)
 };
 
 const TableList = ({source, activate}) => {
     let tables = source.data;
     if (tables.length > 0) {
-        let resp = tables.map(({table}) => {
-            return (<li key={table.name} onClick={() => activate(table)}>{table.name}</li>)
+        let resp = tables.map((data) => {
+            return (<li key={data.table.name} onClick={() => activate(data)}>{data.table.name}</li>)
             });
         return <ul>{resp}</ul>;
     } else {
@@ -186,10 +208,10 @@ const TableList = ({source, activate}) => {
                     {!store.is_loading && store.active_source ? <TableList source={store.active_source} activate={(table) => store.activate_table(table)} /> : store.is_loading ? "..loading" : "no source"}
                 </div>
                 <div id="tableselect">
-                    {store.active_table ? <TableSelect table={store.active_table} /> : null}
+                    {store.active_table ? <TableSelect data={store.active_table} /> : null}
                 </div>
                 <div id="table">
-                    {store.active_table && !store.active_table.view ? <Table data={store.active_table} preview={true} /> : null}
+                    {store.active_table && !store.active_table.view ? <Table data={store.active_table.table} preview={true} /> : null}
                 </div>
                 <div id="toolbar">
                     <h1>State Toolbar</h1>
@@ -243,7 +265,10 @@ function import_state(saved_state) {
             saved_state.active_source.data.map(
                 (datatable) => new DataTable(datatable.table, datatable.view))
         );
-        store.active_table = saved_state.active_table;
+        store.active_table = new DataTable(
+            saved_state.active_table.table,
+            saved_state.active_table.view,
+            saved_state.active_table.view_matrix);
     });
 }
 
