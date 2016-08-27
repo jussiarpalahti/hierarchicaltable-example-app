@@ -9,7 +9,7 @@ var Lockr = require('lockr');
 
 import {extable} from './extable'
 
-import {observable, computed, action, toJS, runInAction, transaction} from 'mobx';
+import {observable, computed, action, toJS, runInAction, transaction, asMap, ObservableMap} from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
@@ -18,24 +18,30 @@ import DevTools from 'mobx-react-devtools';
 
 // DataTable is a combination of original dataset and its selected headers
 class DataTable {
-    constructor(
-        public table: Dataset,
-        public view?: {[key:string]: number[]},
-        public view_matrix?: [string[]]) {
-            this.table = table;
-            if (view) {
-                this.view = view;
-            } else {
-                this.view = {};
-                for (let key in this.table.levels) {
-                    this.view[key] = [];
-                }
+
+    @observable table: Dataset;
+    @observable view: any; // TODO: asMap type?
+    @observable view_matrix: [string[]];
+
+    constructor(table, view?, view_matrix?) {
+        this.table = table;
+        if (view) {
+            this.view = asMap(view);
+        } else {
+            this.view = asMap({});
+            for (let key in this.table.levels) {
+                this.view[key] = observable([]);
             }
-            this.view_matrix = view_matrix;
+        }
+        this.view_matrix = view_matrix;
     }
 
-    add_selection(heading:string, index:number) {
+    @action add_selection(heading:string, index:number) {
         this.view[heading].push(index);
+    }
+
+    @computed get selected() {
+        return this.view;
     }
 }
 
@@ -146,27 +152,41 @@ class Store {
 // <input onChange={e => store.set_view(e.target.value)} value={store.view} />
 // APP
 
-const Menu = ({heading, items}) => {
-    let menu_items = items.map(
-        (item, index) => {
-            let selected = store.active_table.view[heading].indexOf(index) == -1 ? "\u2717" : "\u2713";
-            return <li
-                onClick={() => store.update_table(heading, index)}
-                key={heading + "_" + index}
-                className="pure-menu-item">
-                    <a href="#" className="pure-menu-link">{selected} {item}</a>
-            </li>
-        });
+interface MenuProps {
+    heading: string;
+    items: string[]
+}
 
-    return (<div className="header_menu">
-        <div className="pure-menu pure-menu-scrollable custom-restricted">
-            <a href="#" className="pure-menu-link pure-menu-heading">{heading}</a>
+@observer class Menu extends React.Component<MenuProps, {}> {
 
-            <ul className="pure-menu-list">
-                {menu_items}
-            </ul>
-        </div></div>);
-};
+    select(heading, index) {
+        store.update_table(heading, index);
+    }
+
+    render() {
+        let {heading, items} = this.props;
+        let menu_items = items.map(
+            (item, index) => {
+                let selected = store.active_table.selected[heading].indexOf(index) !== -1;
+                return <li
+                    onClick={this.select.bind(this, heading, index)}
+                    key={heading + "_" + index}
+                    className="pure-menu-item">
+                    <a href="#" className="pure-menu-link">{selected  ? "\u2713" : "\u2717"} {item}</a>
+                </li>
+            });
+
+        return (<div className="header_menu">
+            <div className="pure-menu pure-menu-scrollable custom-restricted">
+                <a href="#" className="pure-menu-link pure-menu-heading">{heading}</a>
+
+                <ul className="pure-menu-list">
+                    {menu_items}
+                </ul>
+            </div>
+        </div>);
+    }
+}
 
 const TableSelect = ({data}) => {
     return (<div>
@@ -205,7 +225,9 @@ const TableList = ({source, activate}) => {
                     </ul>
                 </div>
                 <div id="tablelist">
-                    {!store.is_loading && store.active_source ? <TableList source={store.active_source} activate={(table) => store.activate_table(table)} /> : store.is_loading ? "..loading" : "no source"}
+                    {!store.is_loading && store.active_source ?
+                        <TableList source={store.active_source} activate={(table) => store.activate_table(table)} />
+                        : store.is_loading ? "..loading" : "no source"}
                 </div>
                 <div id="tableselect">
                     {store.active_table ? <TableSelect data={store.active_table} /> : null}
